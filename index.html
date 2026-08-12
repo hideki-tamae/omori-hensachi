@@ -7,6 +7,7 @@
 <meta name="description" content="人生で背負ってきた重さを、科学的エビデンスに基づいて数値化する診断ツール。">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@500;700;900&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style>
   :root{
     --ink:#1A2847;
@@ -527,107 +528,112 @@
    ============================================================ */
 const CATEGORIES = [
   {
-    id:'crisis', eyebrow:'CATEGORY 1 / 生存限界・危機領域',
-    title:'生存限界・危機領域', sub:'人類の限界とされる、極めて重い出来事です。',
+    id:'daily', eyebrow:'CATEGORY 1 / 生活の変化・日常領域',
+    title:'生活の変化・日常領域', sub:'まずは、日常の中にあるような身近な変化から。心当たりのあるものを選んでください。',
     items:[
-      {id:'war_child_loss', label:'戦争・わが子の喪失', score:110},
-      {id:'spouse_death', label:'配偶者・パートナーの死', score:100},
-      {id:'sexual_assault', label:'性的暴行・性暴力被害', score:92},
-      {id:'dv_ipv', label:'DV・配偶者間暴力を受けた', score:90},
-      {id:'institutional_coverup', label:'組織的・法的な隠蔽被害にあった', score:95},
+      {id:'weather_mood', label:'季節の変わり目・天候不順による体調不良', score:10},
+      {id:'holiday_stress', label:'長期休暇のストレス（GW・年末年始）', score:15},
+      {id:'canceled_plan', label:'楽しみにしていた予定の中止', score:18},
+      {id:'commute_change', label:'通勤・通学環境の変化', score:20},
+      {id:'lifestyle_change', label:'生活習慣の大きな変化', score:23},
+      {id:'pet_death', label:'ペットの死', score:25},
     ]
   },
   {
-    id:'collapse', eyebrow:'CATEGORY 2 / 崩壊・喪失領域',
-    title:'崩壊・喪失領域', sub:'社会的な基盤が大きく揺らぐ出来事です。',
+    id:'money', eyebrow:'CATEGORY 2 / お金・住まい領域',
+    title:'お金・住まい領域', sub:'経済的な基盤に関わる出来事です。',
     items:[
-      {id:'disaster_home_loss', label:'自然災害・被災による住まいの喪失', score:85},
-      {id:'homeless', label:'ホームレス・全財産の喪失', score:85},
-      {id:'severe_mental_illness', label:'重い精神疾患の診断（うつ・適応障害等）', score:85},
-      {id:'suicide_family_loss', label:'自死による家族の喪失', score:83},
-      {id:'lawsuit', label:'訴訟・法的紛争の当事者になった', score:80},
+      {id:'future_anxiety', label:'将来への漠然とした不安（老後・AI失業など）', score:18},
+      {id:'moving', label:'引っ越し', score:45},
+      {id:'debt_difficulty', label:'奨学金・借金の返済困難', score:48},
+      {id:'mortgage', label:'住宅ローンの締結', score:55},
+      {id:'income_drop', label:'収入の大幅な減少', score:70},
     ]
   },
   {
-    id:'disability', eyebrow:'CATEGORY 3 / 障害等級',
-    title:'障害等級（該当する方のみ）', sub:'該当する等級を選択してください。複数ある場合は最も重いものを選んでください。',
-    isSelect:true,
-    options:[
-      {id:'none', label:'該当なし', score:0},
-      {id:'m1', label:'精神障害者保健福祉手帳 1級', score:94},
-      {id:'m2', label:'精神障害者保健福祉手帳 2級', score:88},
-      {id:'m3', label:'精神障害者保健福祉手帳 3級', score:75},
-      {id:'p1', label:'身体障害者手帳 1級', score:98},
-      {id:'p2', label:'身体障害者手帳 2級', score:90},
-      {id:'p3', label:'身体障害者手帳 3級', score:80},
-      {id:'p46', label:'身体障害者手帳 4〜6級', score:68},
+    id:'social', eyebrow:'CATEGORY 3 / 人間関係・SNS・マイノリティストレス',
+    title:'人間関係・SNS領域', sub:'対人関係や社会的な立場に関わる出来事です。',
+    items:[
+      {id:'sns_fatigue', label:'SNS疲れ・スマホ依存の自覚', score:26},
+      {id:'friendship_change', label:'友人関係の大きな変化', score:33},
+      {id:'coming_out_friction', label:'カミングアウトに伴う家族・職場との軋轢', score:45},
+      {id:'discrimination_outing', label:'差別・アウティング被害を受けた', score:60},
+      {id:'sns_flaming', label:'SNSでの炎上・誹謗中傷被害', score:68},
     ]
   },
   {
     id:'work', eyebrow:'CATEGORY 4 / 仕事・キャリア領域',
     title:'仕事・キャリア領域', sub:'働くことに関わる出来事です。',
     items:[
-      {id:'layoff_bankruptcy', label:'解雇・会社倒産', score:78},
-      {id:'unfair_dismissal', label:'不当解雇・職場での排除', score:76},
-      {id:'org_no_response', label:'加害を訴えても組織が適切に対応しなかった', score:78},
-      {id:'welfare_addiction', label:'生活保護の受給・重度の依存症', score:74},
-      {id:'disciplinary_complaint', label:'懲戒請求・不服申立て等の当事者になった', score:65},
-      {id:'job_change', label:'転職', score:60},
-      {id:'remote_office_change', label:'リモート⇔出社の大きな変更', score:53},
-      {id:'academic_career_setback', label:'学業・キャリアの大きな挫折', score:45},
-      {id:'side_job_loss', label:'副業・フリーランス案件の消失', score:40},
-      {id:'career_shift', label:'キャリアの方向転換（起業・異業種）', score:36},
-      {id:'promotion_transfer', label:'昇進・異動', score:30},
       {id:'overwork', label:'長時間労働・慢性的な残業', score:28},
+      {id:'promotion_transfer', label:'昇進・異動', score:30},
+      {id:'career_shift', label:'キャリアの方向転換（起業・異業種）', score:36},
+      {id:'side_job_loss', label:'副業・フリーランス案件の消失', score:40},
+      {id:'academic_career_setback', label:'学業・キャリアの大きな挫折', score:45},
+      {id:'remote_office_change', label:'リモート⇔出社の大きな変更', score:53},
+      {id:'job_change', label:'転職', score:60},
+      {id:'disciplinary_complaint', label:'懲戒請求・不服申立て等の当事者になった', score:65},
+      {id:'welfare_addiction', label:'生活保護の受給・重度の依存症', score:74},
+      {id:'unfair_dismissal', label:'不当解雇・職場での排除', score:76},
+      {id:'layoff_bankruptcy', label:'解雇・会社倒産', score:78},
+      {id:'org_no_response', label:'加害を訴えても組織が適切に対応しなかった', score:78},
     ]
   },
   {
     id:'family', eyebrow:'CATEGORY 5 / 家族・パートナー領域',
     title:'家族・パートナー領域', sub:'家族やパートナーに関わる出来事です。',
     items:[
-      {id:'divorce', label:'離婚・長期パートナーとの破局', score:90},
-      {id:'infidelity', label:'パートナーの裏切り・不倫', score:69},
-      {id:'miscarriage', label:'流産・死産', score:68},
-      {id:'caregiving_start', label:'親の介護が始まった', score:75},
-      {id:'family_illness', label:'家族の重病', score:73},
-      {id:'marriage', label:'結婚・事実婚の開始', score:65},
-      {id:'pregnancy_infertility', label:'妊娠・不妊治療', score:63},
-      {id:'childbirth', label:'出産・子どもの誕生', score:58},
-      {id:'relationship_deterioration', label:'パートナーとの関係悪化', score:43},
-      {id:'childcare_school_issues', label:'子どもの保育園・学校問題', score:38},
-      {id:'parent_relationship_breakdown', label:'親との関係悪化・絶縁', score:35},
       {id:'child_independence', label:'子どもの独立', score:29},
+      {id:'parent_relationship_breakdown', label:'親との関係悪化・絶縁', score:35},
+      {id:'childcare_school_issues', label:'子どもの保育園・学校問題', score:38},
+      {id:'relationship_deterioration', label:'パートナーとの関係悪化', score:43},
+      {id:'childbirth', label:'出産・子どもの誕生', score:58},
+      {id:'pregnancy_infertility', label:'妊娠・不妊治療', score:63},
+      {id:'marriage', label:'結婚・事実婚の開始', score:65},
+      {id:'miscarriage', label:'流産・死産', score:68},
+      {id:'infidelity', label:'パートナーの裏切り・不倫', score:69},
+      {id:'family_illness', label:'家族の重病', score:73},
+      {id:'caregiving_start', label:'親の介護が始まった', score:75},
+      {id:'divorce', label:'離婚・長期パートナーとの破局', score:90},
     ]
   },
   {
-    id:'money', eyebrow:'CATEGORY 6 / お金・住まい領域',
-    title:'お金・住まい領域', sub:'経済的な基盤に関わる出来事です。',
-    items:[
-      {id:'income_drop', label:'収入の大幅な減少', score:70},
-      {id:'mortgage', label:'住宅ローンの締結', score:55},
-      {id:'debt_difficulty', label:'奨学金・借金の返済困難', score:48},
-      {id:'moving', label:'引っ越し', score:45},
-      {id:'future_anxiety', label:'将来への漠然とした不安（老後・AI失業など）', score:18},
+    id:'disability', eyebrow:'CATEGORY 6 / 障害等級',
+    title:'障害等級（該当する方のみ）', sub:'該当する等級を選択してください。複数ある場合は最も重いものを選んでください。',
+    isSelect:true,
+    options:[
+      {id:'none', label:'該当なし', score:0},
+      {id:'p46', label:'身体障害者手帳 4〜6級', score:68, group:'身体障害者手帳'},
+      {id:'p3', label:'身体障害者手帳 3級', score:80, group:'身体障害者手帳'},
+      {id:'p2', label:'身体障害者手帳 2級', score:90, group:'身体障害者手帳'},
+      {id:'p1', label:'身体障害者手帳 1級', score:98, group:'身体障害者手帳'},
+      {id:'rB', label:'療育手帳 B（重度以外）', score:78, group:'療育手帳'},
+      {id:'rA', label:'療育手帳 A（重度）', score:92, group:'療育手帳'},
+      {id:'m3', label:'精神障害者保健福祉手帳 3級', score:75, group:'精神障害者保健福祉手帳'},
+      {id:'m2', label:'精神障害者保健福祉手帳 2級', score:88, group:'精神障害者保健福祉手帳'},
+      {id:'m1', label:'精神障害者保健福祉手帳 1級', score:94, group:'精神障害者保健福祉手帳'},
     ]
   },
   {
-    id:'social', eyebrow:'CATEGORY 7 / 人間関係・SNS・マイノリティストレス',
-    title:'人間関係・SNS領域', sub:'対人関係や社会的な立場に関わる出来事です。',
+    id:'collapse', eyebrow:'CATEGORY 7 / 崩壊・喪失領域',
+    title:'崩壊・喪失領域', sub:'社会的な基盤が大きく揺らぐ出来事です。',
     items:[
-      {id:'sns_flaming', label:'SNSでの炎上・誹謗中傷被害', score:68},
-      {id:'discrimination_outing', label:'差別・アウティング被害を受けた', score:60},
-      {id:'coming_out_friction', label:'カミングアウトに伴う家族・職場との軋轢', score:45},
-      {id:'friendship_change', label:'友人関係の大きな変化', score:33},
-      {id:'sns_fatigue', label:'SNS疲れ・スマホ依存の自覚', score:26},
+      {id:'lawsuit', label:'訴訟・法的紛争の当事者になった', score:80},
+      {id:'suicide_family_loss', label:'自死による家族の喪失', score:83},
+      {id:'disaster_home_loss', label:'自然災害・被災による住まいの喪失', score:85},
+      {id:'homeless', label:'ホームレス・全財産の喪失', score:85},
+      {id:'severe_mental_illness', label:'重い精神疾患の診断（うつ・適応障害等）', score:85},
     ]
   },
   {
-    id:'daily', eyebrow:'CATEGORY 8 / 生活の変化・日常領域',
-    title:'生活の変化・日常領域', sub:'日常の中の変化です。',
+    id:'crisis', eyebrow:'CATEGORY 8 / 生存限界・危機領域',
+    title:'生存限界・危機領域', sub:'人類の限界とされる、極めて重い出来事です。ここまでで多くの項目が終わりました。',
     items:[
-      {id:'pet_death', label:'ペットの死', score:25},
-      {id:'lifestyle_change', label:'生活習慣の大きな変化', score:23},
-      {id:'holiday_stress', label:'長期休暇のストレス（GW・年末年始）', score:15},
+      {id:'dv_ipv', label:'DV・配偶者間暴力を受けた', score:90},
+      {id:'sexual_assault', label:'性的暴行・性暴力被害', score:92},
+      {id:'institutional_coverup', label:'組織的・法的な隠蔽被害にあった', score:95},
+      {id:'spouse_death', label:'配偶者・パートナーの死', score:100},
+      {id:'war_child_loss', label:'戦争・わが子の喪失', score:110},
     ]
   },
   {
@@ -708,12 +714,34 @@ function renderCategory(){
   if(cat.isSelect){
     const sel = document.createElement('select');
     sel.className = 'grade-select';
+
+    // 「該当なし」は先頭に単独で配置
+    const noneOpt = cat.options.find(o=>o.id==='none');
+    const optNone = document.createElement('option');
+    optNone.value = noneOpt.id; optNone.textContent = noneOpt.label;
+    if(state.selections[cat.id]===noneOpt.id) optNone.selected = true;
+    sel.appendChild(optNone);
+
+    // group(身体障害者手帳/療育手帳/精神障害者保健福祉手帳)ごとにoptgroup化
+    const groups = [];
     cat.options.forEach(o=>{
-      const opt = document.createElement('option');
-      opt.value = o.id; opt.textContent = o.label;
-      if(state.selections[cat.id]===o.id) opt.selected = true;
-      sel.appendChild(opt);
+      if(o.id==='none') return;
+      let g = groups.find(g=>g.name===o.group);
+      if(!g){ g = {name:o.group, items:[]}; groups.push(g); }
+      g.items.push(o);
     });
+    groups.forEach(g=>{
+      const og = document.createElement('optgroup');
+      og.label = g.name;
+      g.items.forEach(o=>{
+        const opt = document.createElement('option');
+        opt.value = o.id; opt.textContent = o.label;
+        if(state.selections[cat.id]===o.id) opt.selected = true;
+        og.appendChild(opt);
+      });
+      sel.appendChild(og);
+    });
+
     sel.onchange = (e)=>{ state.selections[cat.id] = e.target.value; };
     body.appendChild(sel);
     const note = document.createElement('div');
@@ -853,6 +881,7 @@ function renderResult(total, breakdown){
   }
 
   window._lastTotal = total;
+  window._lastBreakdown = breakdown;
   showScreen('screen-result');
 }
 
@@ -903,15 +932,55 @@ function restart(){
 }
 
 /* ============================================================
-   CONSENT -> (Supabase接続用フック。現状は未接続のスタブ)
-   実装時は下記に Supabase の insert 処理を追加してください。
-   送信するのは "total" と "breakdownのlabel配列" のみとし、
-   自由記述・IP・識別子は一切含めないこと。
+   CONSENT -> Supabase 匿名データ送信
+   送信するのは total_score と category_labels（ラベル文字列の配列）のみ。
+   自由記述・IPアドレス・氏名・メールアドレス等は一切含めない。
+   同意チェックが外れている場合、この関数は呼ばれない
+   （＝何も送信されない）。
    ============================================================ */
+const SUPABASE_URL = 'https://nfpbzvlhtkedlsziwtpe.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_ITPsHmUTJ_ib_86H9OkNCQ_crYWi2mM';
+
+let _supabaseClient = null;
+function getSupabaseClient(){
+  if(_supabaseClient) return _supabaseClient;
+  if(typeof supabase === 'undefined' || !supabase.createClient){
+    console.warn('[omori-hensachi] Supabase SDKの読み込みに失敗しました。');
+    return null;
+  }
+  _supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+  return _supabaseClient;
+}
+
+let _hasSubmitted = false;
+async function submitAnonymizedResult(){
+  if(_hasSubmitted) return; // 二重送信を防止
+  const client = getSupabaseClient();
+  if(!client) return;
+
+  const total = window._lastTotal;
+  const labels = (window._lastBreakdown || []).map(b => b.label);
+
+  if(typeof total !== 'number') return;
+
+  try{
+    const { error } = await client
+      .from('results')
+      .insert([{ total_score: total, category_labels: labels }]);
+    if(error){
+      console.warn('[omori-hensachi] 匿名データ送信に失敗しました:', error.message);
+    } else {
+      _hasSubmitted = true;
+      console.log('[omori-hensachi] 匿名データを送信しました（個人情報は含まれません）');
+    }
+  } catch(err){
+    console.warn('[omori-hensachi] 匿名データ送信中にエラーが発生しました:', err);
+  }
+}
+
 document.addEventListener('change', function(e){
   if(e.target && e.target.id==='consentCheck' && e.target.checked){
-    console.log('[consent] anonymized aggregate opt-in — connect Supabase insert here');
-    // TODO: fetch('/api/submit-anon', {method:'POST', body: JSON.stringify({ total: window._lastTotal })})
+    submitAnonymizedResult();
   }
 });
 </script>
