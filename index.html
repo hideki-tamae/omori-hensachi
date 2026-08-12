@@ -411,6 +411,53 @@
     padding-top:20px;
     border-top:1px solid var(--line);
   }
+  .footer-mark{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+    font-family:'Noto Serif JP',serif;
+    font-size:11px;
+    letter-spacing:.08em;
+    color:#B9AF95;
+    margin-bottom:8px;
+  }
+  .footer-mark .footer-mark-dot{color:var(--gold-soft);}
+  .footer-logo{
+    width:18px;height:18px;
+    border-radius:50%;
+    object-fit:cover;
+    opacity:.85;
+  }
+
+  /* ---------- 差し込み画像スロット（根と光／金継ぎ） ---------- */
+  .hero-image{
+    width:100%;
+    max-width:340px;
+    margin:0 auto 22px;
+    display:block;
+    border-radius:var(--radius);
+  }
+  .recovery-image{
+    width:100%;
+    max-width:280px;
+    margin:26px auto 6px;
+    display:block;
+    border-radius:var(--radius);
+    opacity:.92;
+  }
+  .image-pending-note{
+    text-align:center;
+    font-size:11px;
+    color:#B9AF95;
+    margin:-14px 0 20px;
+  }
+
+  /* ---------- share buttons: LINE/Facebook ---------- */
+  .share-btn.line-btn{
+    background:var(--gold-soft);
+    color:var(--ink);
+  }
 
   @media (prefers-reduced-motion: reduce){
     .start-btn, .progress-inner{transition:none;}
@@ -433,13 +480,7 @@
       <h1>あなたが背負ってきた重さは、<br>何キロですか。</h1>
       <p class="lede">ベンチプレスで600kgを挙げる人は世界記録として称賛される。では、心に同じ重さの絶望を背負って今日を生きているあなたの強さは、誰が測ってくれるのでしょうか。</p>
 
-      <svg class="barbell" viewBox="0 0 360 90" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-        <rect x="30" y="40" width="300" height="8" rx="4" fill="#1A2847"/>
-        <rect x="10" y="15" width="24" height="58" rx="4" fill="#D4AF37"/>
-        <rect x="40" y="24" width="14" height="40" rx="3" fill="#1A2847"/>
-        <rect x="326" y="15" width="24" height="58" rx="4" fill="#D4AF37"/>
-        <rect x="306" y="24" width="14" height="40" rx="3" fill="#1A2847"/>
-      </svg>
+      <img src="root-and-light.jpg" alt="地中の石(重り)から地上へ伸びる金色の茎と光" class="hero-image">
 
       <button class="start-btn" onclick="goTo('cat0')">診断をはじめる（無料・約3分）</button>
 
@@ -494,6 +535,9 @@
       <b>これは優劣ではありません。</b> 数字の高低は、あなたという人の価値を測るものではなく、これまで耐えてきた重さを言語化するための道具です。低い数字が出ても、あなたが感じている痛みが軽いという意味ではありません。
     </div>
 
+    <img src="orizuru.jpg" alt="金の線で象られた折り鶴" class="recovery-image">
+    <p class="image-pending-note">— ここまで運んできた、その形そのものが、すでに価値です —</p>
+
     <div id="resourceBox"></div>
 
     <div class="breakdown">
@@ -509,7 +553,9 @@
     <div class="share-box">
       <p>シェアされるのは総合スコアのみです。内訳は公開されません。</p>
       <div class="share-actions">
+        <button class="share-btn line-btn" onclick="shareToLine()">LINEで送る</button>
         <button class="share-btn" onclick="shareToX()">Xで結果をシェア</button>
+        <button class="share-btn outline" onclick="shareToFacebook()">Facebookでシェア</button>
         <button class="share-btn outline" onclick="copyResult()">結果をコピー</button>
       </div>
     </div>
@@ -518,6 +564,10 @@
   </section>
 
   <footer>
+    <div class="footer-mark">
+      <img src="aces-care-hub-logo.jpg" alt="ACEs CARE HUB JAPAN" class="footer-logo">
+      <span>ACEs CARE HUB JAPAN</span>
+    </div>
     &copy; 2026 omori-hensachi ／ ACEs CARE HUB JAPAN｜本診断は研究知見を参考にした独自設計のセルフ理解ツールであり、医学的診断・専門的助言に代わるものではありません。
   </footer>
 </div>
@@ -900,6 +950,17 @@ function shareToX(){
   const shareUrl = buildShareUrl(total);
   const text = `私の「心の重り偏差値」は ${total} でした。あなたも測ってみませんか？\n#心の重り偏差値マップ`;
   window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(shareUrl)}`, '_blank');
+}
+function shareToLine(){
+  const total = window._lastTotal || 0;
+  const shareUrl = buildShareUrl(total);
+  const text = `私の「心の重り偏差値」は ${total} でした。あなたも測ってみませんか？`;
+  window.open(`https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(text)}`, '_blank');
+}
+function shareToFacebook(){
+  const total = window._lastTotal || 0;
+  const shareUrl = buildShareUrl(total);
+  window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`, '_blank');
 }
 function copyResult(){
   const total = window._lastTotal || 0;
