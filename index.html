@@ -1,0 +1,1050 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>心の重り偏差値マップ ｜ omori-hensachi</title>
+<meta name="description" content="人生で背負ってきた重さを、科学的エビデンスに基づいて数値化する診断ツール。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@500;700;900&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<style>
+  :root{
+    --ink:#1A2847;
+    --ink-soft:#3B4A6B;
+    --gold:#D4AF37;
+    --gold-soft:#E8CE7A;
+    --parchment:#FAF7F0;
+    --parchment-deep:#F1EBDD;
+    --line:#DDD5C0;
+    --danger:#8C3B2E;
+    --calm:#4E6E5D;
+    --white:#FFFFFF;
+    --radius:14px;
+    --shadow:0 8px 24px rgba(26,40,71,0.08);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--parchment);
+    color:var(--ink);
+    font-family:'Noto Sans JP',sans-serif;
+    line-height:1.7;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,.serif{font-family:'Noto Serif JP',serif;}
+  .wrap{max-width:640px;margin:0 auto;padding:0 20px 80px;}
+  a{color:var(--ink);}
+
+  /* ---------- top bar ---------- */
+  .topbar{
+    background:var(--ink);
+    color:var(--parchment);
+    padding:18px 20px;
+    text-align:center;
+    letter-spacing:.04em;
+  }
+  .topbar .logo{
+    font-family:'Noto Serif JP',serif;
+    font-weight:700;
+    font-size:15px;
+  }
+  .topbar .logo .dot{color:var(--gold-soft);}
+
+  /* ---------- intro ---------- */
+  .hero{padding:48px 0 8px;text-align:center;}
+  .hero h1{
+    font-size:30px;
+    font-weight:900;
+    line-height:1.4;
+    margin:0 0 14px;
+    color:var(--ink);
+  }
+  .hero .lede{
+    font-size:15.5px;
+    color:var(--ink-soft);
+    margin:0 auto 28px;
+    max-width:480px;
+  }
+  .barbell{
+    width:100%;
+    max-width:360px;
+    margin:0 auto 30px;
+    display:block;
+  }
+  .barbell-caption{
+    text-align:center;
+    font-size:11px;
+    letter-spacing:.15em;
+    color:var(--ink-soft);
+    margin:-14px 0 26px;
+  }
+  .barbell-caption b{color:var(--gold);font-weight:700;}
+  .start-btn{
+    display:inline-block;
+    background:var(--ink);
+    color:var(--parchment);
+    border:none;
+    font-family:'Noto Serif JP',serif;
+    font-weight:700;
+    font-size:16px;
+    padding:16px 40px;
+    border-radius:999px;
+    cursor:pointer;
+    letter-spacing:.03em;
+    box-shadow:var(--shadow);
+    transition:transform .15s ease, box-shadow .15s ease;
+  }
+  .start-btn:hover{transform:translateY(-2px);box-shadow:0 12px 28px rgba(26,40,71,0.16);}
+  .disclaimer{
+    margin-top:22px;
+    font-size:12px;
+    color:#8A8168;
+    max-width:420px;
+    margin-left:auto;margin-right:auto;
+  }
+  .evidence-row{
+    display:flex;gap:10px;justify-content:center;flex-wrap:wrap;
+    margin:26px 0 6px;
+  }
+  .evidence-pill{
+    font-size:11.5px;
+    border:1px solid var(--line);
+    background:var(--white);
+    padding:6px 12px;
+    border-radius:999px;
+    color:var(--ink-soft);
+  }
+  .evidence-more-toggle{
+    display:block;
+    margin:10px auto 0;
+    background:none;border:none;
+    font-size:12px;
+    color:var(--ink-soft);
+    text-decoration:underline;
+    cursor:pointer;
+  }
+  .evidence-extra{
+    display:none;
+    max-width:440px;
+    margin:12px auto 0;
+    text-align:left;
+    background:var(--white);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:14px 18px;
+  }
+  .evidence-extra.show{display:block;}
+  .evidence-extra li{font-size:12px;color:var(--ink-soft);margin-bottom:6px;line-height:1.6;}
+
+  /* ---------- シェア経由の着地バナー ---------- */
+  .share-landing-banner{
+    display:none;
+    max-width:480px;
+    margin:0 auto 26px;
+    background:var(--white);
+    border:1px solid var(--gold-soft);
+    border-radius:var(--radius);
+    padding:16px 20px;
+    text-align:center;
+    box-shadow:var(--shadow);
+  }
+  .share-landing-banner.show{display:block;}
+  .share-landing-banner .eyebrow{
+    font-size:11px;letter-spacing:.1em;color:var(--gold);
+    font-weight:700;text-transform:uppercase;margin-bottom:6px;
+  }
+  .share-landing-banner .msg{font-size:14px;color:var(--ink);}
+  .share-landing-banner .msg b{color:var(--danger);}
+
+  /* ---------- stepper screen ---------- */
+  .screen{display:none;}
+  .screen.active{display:block;}
+
+  .progress-outer{
+    background:var(--parchment-deep);
+    height:6px;
+    border-radius:999px;
+    overflow:hidden;
+    margin:26px 0 4px;
+  }
+  .progress-inner{
+    background:linear-gradient(90deg,var(--gold),var(--gold-soft));
+    height:100%;
+    width:0%;
+    transition:width .3s ease;
+  }
+  .progress-label{
+    font-size:12px;
+    color:var(--ink-soft);
+    display:flex;justify-content:space-between;
+    margin-bottom:22px;
+  }
+
+  .cat-eyebrow{
+    font-size:12px;
+    letter-spacing:.12em;
+    color:var(--gold);
+    font-weight:700;
+    text-transform:uppercase;
+  }
+  .cat-title{
+    font-size:22px;
+    font-weight:700;
+    margin:4px 0 6px;
+  }
+  .cat-sub{
+    font-size:13.5px;
+    color:var(--ink-soft);
+    margin-bottom:22px;
+  }
+
+  .item-card{
+    background:var(--white);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:16px 18px;
+    margin-bottom:12px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    cursor:pointer;
+    transition:border-color .15s ease, background .15s ease;
+  }
+  .item-card:hover{border-color:var(--gold);}
+  .item-card.selected{
+    border-color:var(--gold);
+    background:#FFFBEF;
+  }
+  .item-label{font-size:14.5px;flex:1;}
+  .checkbox{
+    width:22px;height:22px;
+    border-radius:6px;
+    border:2px solid var(--line);
+    flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;
+    transition:all .15s ease;
+  }
+  .item-card.selected .checkbox{
+    background:var(--ink);
+    border-color:var(--ink);
+  }
+  .checkbox svg{opacity:0;width:13px;height:13px;transition:opacity .1s;}
+  .item-card.selected .checkbox svg{opacity:1;}
+
+  select.grade-select{
+    width:100%;
+    padding:14px 16px;
+    font-size:15px;
+    border-radius:var(--radius);
+    border:1px solid var(--line);
+    background:var(--white);
+    color:var(--ink);
+    font-family:inherit;
+    appearance:none;
+    margin-bottom:8px;
+  }
+  .field-note{font-size:12px;color:#8A8168;margin-bottom:20px;}
+
+  .nav-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-top:30px;
+    gap:12px;
+  }
+  .btn{
+    font-family:'Noto Sans JP',sans-serif;
+    font-weight:700;
+    font-size:14.5px;
+    border-radius:999px;
+    padding:13px 26px;
+    border:none;
+    cursor:pointer;
+  }
+  .btn-primary{background:var(--ink);color:var(--parchment);}
+  .btn-ghost{background:transparent;color:var(--ink-soft);border:1px solid var(--line);}
+  .btn:disabled{opacity:.4;cursor:not-allowed;}
+
+  /* ---------- results ---------- */
+  .result-hero{
+    text-align:center;
+    padding:20px 0 10px;
+  }
+  .gauge-wrap{position:relative;width:220px;height:130px;margin:0 auto 6px;}
+  .score-num{
+    font-family:'Noto Serif JP',serif;
+    font-weight:900;
+    font-size:52px;
+    color:var(--ink);
+  }
+  .score-cap{font-size:13px;color:var(--ink-soft);}
+  .score-band{
+    display:inline-block;
+    margin-top:12px;
+    padding:8px 18px;
+    border-radius:999px;
+    font-size:13.5px;
+    font-weight:700;
+  }
+  .band-a{background:#F4E3E0;color:var(--danger);}
+  .band-b{background:#F6EBD6;color:#8C6A2E;}
+  .band-c{background:#E9EFE6;color:var(--calm);}
+
+  /* ---------- 7段階スケール ---------- */
+  .tier-scale{max-width:420px;margin:22px auto 0;}
+  .tier-track{
+    position:relative;
+    height:10px;
+    border-radius:999px;
+    background:linear-gradient(90deg,
+      #E9EFE6 0%, #E9EFE6 27%,
+      #F6EBD6 27%, #F6EBD6 45%,
+      #F3D9BE 45%, #F3D9BE 63%,
+      #F0C6A8 63%, #F0C6A8 72%,
+      #EEB39A 72%, #EEB39A 81%,
+      #F4E3E0 81%, #F4E3E0 100%);
+  }
+  .tier-marker{
+    position:absolute;
+    top:-5px;
+    width:20px;height:20px;
+    border-radius:50%;
+    background:var(--ink);
+    border:3px solid var(--parchment);
+    box-shadow:0 2px 6px rgba(0,0,0,.25);
+    transform:translateX(-50%);
+    transition:left .5s ease;
+  }
+  .tier-detail{
+    margin-top:14px;
+    font-size:13px;
+    color:var(--ink-soft);
+    text-align:left;
+    background:var(--white);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:12px 14px;
+  }
+  .tier-detail b{color:var(--ink);display:block;font-size:14px;margin-bottom:3px;}
+
+  .safety-note{
+    background:var(--white);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:18px 20px;
+    font-size:13.5px;
+    color:var(--ink-soft);
+    margin:26px 0;
+  }
+  .safety-note b{color:var(--ink);}
+
+  .resource-box{
+    background:#FCEFE9;
+    border:1px solid #E9C9BB;
+    border-radius:var(--radius);
+    padding:18px 20px;
+    margin:18px 0;
+    font-size:13.5px;
+  }
+  .resource-box a{color:var(--danger);font-weight:700;}
+
+  .breakdown{margin:30px 0;}
+  .breakdown h3{font-size:16px;margin-bottom:14px;}
+  .bd-row{
+    display:flex;justify-content:space-between;
+    padding:10px 0;
+    border-bottom:1px solid var(--line);
+    font-size:13.5px;
+  }
+  .bd-row span.pt{color:var(--gold);font-weight:700;}
+
+  .share-box{
+    text-align:center;
+    margin:34px 0 10px;
+    padding:26px 20px;
+    background:var(--ink);
+    border-radius:var(--radius);
+    color:var(--parchment);
+  }
+  .share-box p{font-size:13px;color:#C9D0DE;margin:0 0 16px;}
+  .share-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+  .share-btn{
+    background:var(--gold);
+    color:var(--ink);
+    border:none;
+    border-radius:999px;
+    padding:12px 22px;
+    font-weight:700;
+    font-size:13.5px;
+    cursor:pointer;
+  }
+  .share-btn.outline{
+    background:transparent;
+    color:var(--parchment);
+    border:1px solid #4C5A78;
+  }
+
+  .consent-row{
+    display:flex;gap:10px;align-items:flex-start;
+    font-size:12.5px;color:var(--ink-soft);
+    background:var(--white);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:16px 18px;
+    margin:22px 0;
+  }
+  .consent-row input{margin-top:3px;}
+
+  .restart-link{
+    display:block;text-align:center;
+    margin-top:26px;font-size:13px;color:var(--ink-soft);
+    text-decoration:underline;cursor:pointer;background:none;border:none;
+  }
+
+  footer{
+    text-align:center;
+    font-size:11.5px;
+    color:#A79E86;
+    margin-top:60px;
+    padding-top:20px;
+    border-top:1px solid var(--line);
+  }
+  .footer-mark{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+    font-family:'Noto Serif JP',serif;
+    font-size:11px;
+    letter-spacing:.08em;
+    color:#B9AF95;
+    margin-bottom:8px;
+  }
+  .footer-mark .footer-mark-dot{color:var(--gold-soft);}
+
+  /* ---------- 差し込み画像スロット（根と光／金継ぎ） ---------- */
+  .hero-image{
+    width:100%;
+    max-width:340px;
+    margin:0 auto 22px;
+    display:block;
+    border-radius:var(--radius);
+  }
+  .recovery-image{
+    width:100%;
+    max-width:280px;
+    margin:26px auto 6px;
+    display:block;
+    border-radius:var(--radius);
+    opacity:.92;
+  }
+  .image-pending-note{
+    text-align:center;
+    font-size:11px;
+    color:#B9AF95;
+    margin:-14px 0 20px;
+  }
+
+  /* ---------- share buttons: LINE/Facebook ---------- */
+  .share-btn.line-btn{
+    background:var(--gold-soft);
+    color:var(--ink);
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .start-btn, .progress-inner{transition:none;}
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar"><span class="logo">心の重り偏差値マップ<span class="dot"> ・</span> omori-hensachi</span></div>
+
+<div class="wrap">
+
+  <!-- ============ INTRO ============ -->
+  <section id="screen-intro" class="screen active">
+    <div class="share-landing-banner" id="shareLandingBanner">
+      <div class="eyebrow">友人の結果を見て来た方へ</div>
+      <div class="msg" id="shareLandingMsg"></div>
+    </div>
+    <div class="hero">
+      <h1>あなたが背負ってきた重さは、<br>何キロですか。</h1>
+      <p class="lede">ベンチプレスで600kgを挙げる人は世界記録として称賛される。では、心に同じ重さの絶望を背負って今日を生きているあなたの強さは、誰が測ってくれるのでしょうか。</p>
+
+      <svg class="barbell" viewBox="0 0 360 90" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <rect x="30" y="40" width="300" height="8" rx="4" fill="#1A2847"/>
+        <rect x="10" y="15" width="24" height="58" rx="4" fill="#D4AF37"/>
+        <rect x="40" y="24" width="14" height="40" rx="3" fill="#1A2847"/>
+        <rect x="326" y="15" width="24" height="58" rx="4" fill="#D4AF37"/>
+        <rect x="306" y="24" width="14" height="40" rx="3" fill="#1A2847"/>
+      </svg>
+
+      <button class="start-btn" onclick="goTo('cat0')">診断をはじめる（無料・約3分）</button>
+
+      <div class="evidence-row">
+        <span class="evidence-pill">Holmes &amp; Rahe（1967）</span>
+        <span class="evidence-pill">ACE研究 / Felitti &amp; Anda</span>
+        <span class="evidence-pill">Freyd「制度的裏切り」理論</span>
+      </div>
+      <button class="evidence-more-toggle" onclick="toggleEvidence()">他4件の参考文献を見る</button>
+      <ul class="evidence-extra" id="evidenceExtra">
+        <li><b>Meyer, I.H. (2003)</b> Prejudice, social stress, and mental health in lesbian, gay, and bisexual populations. <i>Psychological Bulletin.</i></li>
+        <li><b>Takizawa, Maughan &amp; Arseneault (2014)</b> Adult health outcomes of childhood bullying victimization. <i>American Journal of Psychiatry.</i></li>
+        <li><b>Farren et al. (2016/2020)</b> Posttraumatic stress after miscarriage and ectopic pregnancy. <i>American Journal of Obstetrics &amp; Gynecology.</i></li>
+        <li><b>Golding, J.M. (1999)</b> Intimate partner violence as a risk factor for mental disorders: a meta-analysis.</li>
+      </ul>
+      <p class="disclaimer">この診断は医学的な診断ではありません。研究知見を参考に独自設計した自己理解ツールです。結果は誰とも自動で共有されません。</p>
+    </div>
+  </section>
+
+  <!-- ============ CATEGORY STEPS (populated by JS) ============ -->
+  <section id="screen-category" class="screen">
+    <div class="progress-outer"><div class="progress-inner" id="progressBar"></div></div>
+    <div class="progress-label"><span id="progressText"></span><span id="progressCount"></span></div>
+
+    <div class="cat-eyebrow" id="catEyebrow"></div>
+    <h2 class="cat-title" id="catTitle"></h2>
+    <p class="cat-sub" id="catSub"></p>
+
+    <div id="catBody"></div>
+
+    <div class="nav-row">
+      <button class="btn btn-ghost" id="btnBack" onclick="prevStep()">戻る</button>
+      <button class="btn btn-primary" id="btnNext" onclick="nextStep()">次へ</button>
+    </div>
+  </section>
+
+  <!-- ============ RESULTS ============ -->
+  <section id="screen-result" class="screen">
+    <div class="result-hero">
+      <div class="cat-eyebrow">RESULT</div>
+      <div class="score-num" id="scoreNum">0</div>
+      <div class="score-cap">総合偏差値（上限110）</div>
+      <div id="scoreBand"></div>
+
+      <div class="tier-scale">
+        <div class="tier-track"><div class="tier-marker" id="tierMarker"></div></div>
+        <div class="tier-detail" id="tierDetail"></div>
+      </div>
+    </div>
+
+    <div class="safety-note">
+      <b>これは優劣ではありません。</b> 数字の高低は、あなたという人の価値を測るものではなく、これまで耐えてきた重さを言語化するための道具です。低い数字が出ても、あなたが感じている痛みが軽いという意味ではありません。
+    </div>
+
+
+    <div id="resourceBox"></div>
+
+    <div class="breakdown">
+      <h3>内訳（影響度順）</h3>
+      <div id="breakdownList"></div>
+    </div>
+
+    <div class="consent-row">
+      <input type="checkbox" id="consentCheck">
+      <label for="consentCheck">この結果を匿名の統計データとして、逆境やケアに関する社会的な政策提言に役立てることに同意します（個人を特定できる情報は一切送信されません。数値スコアとカテゴリの内訳のみを送信します）</label>
+    </div>
+
+    <div class="share-box">
+      <p>シェアされるのは総合スコアのみです。内訳は公開されません。</p>
+      <div class="share-actions">
+        <button class="share-btn line-btn" onclick="shareToLine()">LINEで送る</button>
+        <button class="share-btn" onclick="shareToX()">Xで結果をシェア</button>
+        <button class="share-btn outline" onclick="shareToFacebook()">Facebookでシェア</button>
+        <button class="share-btn outline" onclick="copyResult()">結果をコピー</button>
+      </div>
+    </div>
+
+    <button class="restart-link" onclick="restart()">もう一度診断する</button>
+  </section>
+
+  <footer>
+    <div class="footer-mark">ACEs CARE HUB JAPAN — All Rights Reserved</div>
+    &copy; 2026 omori-hensachi｜本診断は研究知見を参考にした独自設計のセルフ理解ツールであり、医学的診断・専門的助言に代わるものではありません。
+  </footer>
+</div>
+
+<script>
+/* ============================================================
+   DATA
+   ============================================================ */
+const CATEGORIES = [
+  {
+    id:'daily', eyebrow:'CATEGORY 1 / 生活の変化・日常領域',
+    title:'生活の変化・日常領域', sub:'まずは、日常の中にあるような身近な変化から。心当たりのあるものを選んでください。',
+    items:[
+      {id:'weather_mood', label:'季節の変わり目・天候不順による体調不良', score:10},
+      {id:'holiday_stress', label:'長期休暇のストレス（GW・年末年始）', score:15},
+      {id:'canceled_plan', label:'楽しみにしていた予定の中止', score:18},
+      {id:'commute_change', label:'通勤・通学環境の変化', score:20},
+      {id:'lifestyle_change', label:'生活習慣の大きな変化', score:23},
+      {id:'pet_death', label:'ペットの死', score:25},
+    ]
+  },
+  {
+    id:'money', eyebrow:'CATEGORY 2 / お金・住まい領域',
+    title:'お金・住まい領域', sub:'経済的な基盤に関わる出来事です。',
+    items:[
+      {id:'future_anxiety', label:'将来への漠然とした不安（老後・AI失業など）', score:18},
+      {id:'moving', label:'引っ越し', score:45},
+      {id:'debt_difficulty', label:'奨学金・借金の返済困難', score:48},
+      {id:'mortgage', label:'住宅ローンの締結', score:55},
+      {id:'income_drop', label:'収入の大幅な減少', score:70},
+    ]
+  },
+  {
+    id:'social', eyebrow:'CATEGORY 3 / 人間関係・SNS・マイノリティストレス',
+    title:'人間関係・SNS領域', sub:'対人関係や社会的な立場に関わる出来事です。',
+    items:[
+      {id:'sns_fatigue', label:'SNS疲れ・スマホ依存の自覚', score:26},
+      {id:'friendship_change', label:'友人関係の大きな変化', score:33},
+      {id:'coming_out_friction', label:'カミングアウトに伴う家族・職場との軋轢', score:45},
+      {id:'discrimination_outing', label:'差別・アウティング被害を受けた', score:60},
+      {id:'sns_flaming', label:'SNSでの炎上・誹謗中傷被害', score:68},
+    ]
+  },
+  {
+    id:'work', eyebrow:'CATEGORY 4 / 仕事・キャリア領域',
+    title:'仕事・キャリア領域', sub:'働くことに関わる出来事です。',
+    items:[
+      {id:'overwork', label:'長時間労働・慢性的な残業', score:28},
+      {id:'promotion_transfer', label:'昇進・異動', score:30},
+      {id:'career_shift', label:'キャリアの方向転換（起業・異業種）', score:36},
+      {id:'side_job_loss', label:'副業・フリーランス案件の消失', score:40},
+      {id:'academic_career_setback', label:'学業・キャリアの大きな挫折', score:45},
+      {id:'remote_office_change', label:'リモート⇔出社の大きな変更', score:53},
+      {id:'job_change', label:'転職', score:60},
+      {id:'disciplinary_complaint', label:'懲戒請求・不服申立て等の当事者になった', score:65},
+      {id:'welfare_addiction', label:'生活保護の受給・重度の依存症', score:74},
+      {id:'unfair_dismissal', label:'不当解雇・職場での排除', score:76},
+      {id:'layoff_bankruptcy', label:'解雇・会社倒産', score:78},
+      {id:'org_no_response', label:'加害を訴えても組織が適切に対応しなかった', score:78},
+    ]
+  },
+  {
+    id:'family', eyebrow:'CATEGORY 5 / 家族・パートナー領域',
+    title:'家族・パートナー領域', sub:'家族やパートナーに関わる出来事です。',
+    items:[
+      {id:'child_independence', label:'子どもの独立', score:29},
+      {id:'parent_relationship_breakdown', label:'親との関係悪化・絶縁', score:35},
+      {id:'childcare_school_issues', label:'子どもの保育園・学校問題', score:38},
+      {id:'relationship_deterioration', label:'パートナーとの関係悪化', score:43},
+      {id:'childbirth', label:'出産・子どもの誕生', score:58},
+      {id:'pregnancy_infertility', label:'妊娠・不妊治療', score:63},
+      {id:'marriage', label:'結婚・事実婚の開始', score:65},
+      {id:'miscarriage', label:'流産・死産', score:68},
+      {id:'infidelity', label:'パートナーの裏切り・不倫', score:69},
+      {id:'family_illness', label:'家族の重病', score:73},
+      {id:'caregiving_start', label:'親の介護が始まった', score:75},
+      {id:'divorce', label:'離婚・長期パートナーとの破局', score:90},
+    ]
+  },
+  {
+    id:'disability', eyebrow:'CATEGORY 6 / 障害等級',
+    title:'障害等級（該当する方のみ）', sub:'該当する等級を選択してください。複数ある場合は最も重いものを選んでください。',
+    isSelect:true,
+    options:[
+      {id:'none', label:'該当なし', score:0},
+      {id:'p46', label:'身体障害者手帳 4〜6級', score:68, group:'身体障害者手帳'},
+      {id:'p3', label:'身体障害者手帳 3級', score:80, group:'身体障害者手帳'},
+      {id:'p2', label:'身体障害者手帳 2級', score:90, group:'身体障害者手帳'},
+      {id:'p1', label:'身体障害者手帳 1級', score:98, group:'身体障害者手帳'},
+      {id:'rB', label:'療育手帳 B（重度以外）', score:78, group:'療育手帳'},
+      {id:'rA', label:'療育手帳 A（重度）', score:92, group:'療育手帳'},
+      {id:'m3', label:'精神障害者保健福祉手帳 3級', score:75, group:'精神障害者保健福祉手帳'},
+      {id:'m2', label:'精神障害者保健福祉手帳 2級', score:88, group:'精神障害者保健福祉手帳'},
+      {id:'m1', label:'精神障害者保健福祉手帳 1級', score:94, group:'精神障害者保健福祉手帳'},
+    ]
+  },
+  {
+    id:'collapse', eyebrow:'CATEGORY 7 / 崩壊・喪失領域',
+    title:'崩壊・喪失領域', sub:'社会的な基盤が大きく揺らぐ出来事です。',
+    items:[
+      {id:'lawsuit', label:'訴訟・法的紛争の当事者になった', score:80},
+      {id:'suicide_family_loss', label:'自死による家族の喪失', score:83},
+      {id:'disaster_home_loss', label:'自然災害・被災による住まいの喪失', score:85},
+      {id:'homeless', label:'ホームレス・全財産の喪失', score:85},
+      {id:'severe_mental_illness', label:'重い精神疾患の診断（うつ・適応障害等）', score:85},
+    ]
+  },
+  {
+    id:'crisis', eyebrow:'CATEGORY 8 / 生存限界・危機領域',
+    title:'生存限界・危機領域', sub:'人類の限界とされる、極めて重い出来事です。ここまでで多くの項目が終わりました。',
+    items:[
+      {id:'dv_ipv', label:'DV・配偶者間暴力を受けた', score:90},
+      {id:'sexual_assault', label:'性的暴行・性暴力被害', score:92},
+      {id:'institutional_coverup', label:'組織的・法的な隠蔽被害にあった', score:95},
+      {id:'spouse_death', label:'配偶者・パートナーの死', score:100},
+      {id:'war_child_loss', label:'戦争・わが子の喪失', score:110},
+    ]
+  },
+  {
+    id:'aces', eyebrow:'OPTIONAL / 子ども時代の体験（ACEs）',
+    title:'子ども時代の体験', sub:'該当する方のみお答えください。18歳になるまでの経験について尋ねます。',
+    isAces:true,
+    items:[
+      {id:'phys_abuse', label:'身体的虐待（殴る・蹴る・叩くなどの暴力を受けた）', score:5},
+      {id:'emo_abuse', label:'精神的虐待（侮辱・脅し・傷つける言動を受けた）', score:5},
+      {id:'sex_abuse', label:'性的虐待（不適切な性的接触・要求を受けた）', score:5},
+      {id:'phys_neglect', label:'身体的ネグレクト（食事・衣類・安全などの世話が不足）', score:4},
+      {id:'emo_neglect', label:'精神的ネグレクト（愛されていると感じられなかった）', score:4},
+      {id:'family_dv_witness', label:'家族のDV（家族が暴力・暴言を受けているのを見た）', score:4},
+      {id:'family_mental_illness', label:'家族の精神疾患（同居家族にうつ病・精神疾患等があった）', score:4},
+      {id:'family_substance', label:'家族の薬物・アルコール依存', score:4},
+      {id:'bullying', label:'学校でのいじめ被害', score:4},
+      {id:'family_incarceration', label:'家族の服役（同居家族が逮捕・収監された）', score:3},
+      {id:'parental_divorce', label:'両親の離婚・別居', score:3},
+    ]
+  },
+  {
+    id:'recovery', eyebrow:'FINAL / 回復・静穏領域',
+    title:'今、あなたを支えているもの', sub:'スコアには影響しません。今の自分にあるものを確認してみましょう。',
+    isRecovery:true,
+    items:[
+      {id:'breathing_meditation', label:'深い呼吸・瞑想・日向ぼっこの習慣がある', score:0},
+      {id:'good_sleep', label:'快適な睡眠が取れている', score:0},
+      {id:'someone_to_talk', label:'相談できる相手がいる', score:0},
+    ]
+  }
+];
+
+const state = { current:-1, selections:{} };
+CATEGORIES.forEach(c=>{ state.selections[c.id] = c.isSelect ? 'none' : new Set(); });
+
+/* ============================================================
+   NAVIGATION
+   ============================================================ */
+function toggleEvidence(){
+  const el = document.getElementById('evidenceExtra');
+  const btn = document.querySelector('.evidence-more-toggle');
+  el.classList.toggle('show');
+  btn.textContent = el.classList.contains('show') ? '参考文献を閉じる' : '他4件の参考文献を見る';
+}
+
+function goTo(target){
+  if(target==='cat0'){ state.current = 0; renderCategory(); showScreen('screen-category'); }
+}
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function nextStep(){
+  if(state.current < CATEGORIES.length-1){
+    state.current++; renderCategory();
+  } else {
+    computeAndShowResult();
+  }
+}
+function prevStep(){
+  if(state.current>0){ state.current--; renderCategory(); }
+  else { showScreen('screen-intro'); }
+}
+
+function renderCategory(){
+  const cat = CATEGORIES[state.current];
+  document.getElementById('catEyebrow').textContent = cat.eyebrow;
+  document.getElementById('catTitle').textContent = cat.title;
+  document.getElementById('catSub').textContent = cat.sub;
+  document.getElementById('progressText').textContent = 'STEP ' + (state.current+1) + ' / ' + CATEGORIES.length;
+  document.getElementById('progressCount').textContent = Math.round(((state.current+1)/CATEGORIES.length)*100) + '%';
+  document.getElementById('progressBar').style.width = (((state.current+1)/CATEGORIES.length)*100) + '%';
+
+  const body = document.getElementById('catBody');
+  body.innerHTML = '';
+
+  if(cat.isSelect){
+    const sel = document.createElement('select');
+    sel.className = 'grade-select';
+
+    // 「該当なし」は先頭に単独で配置
+    const noneOpt = cat.options.find(o=>o.id==='none');
+    const optNone = document.createElement('option');
+    optNone.value = noneOpt.id; optNone.textContent = noneOpt.label;
+    if(state.selections[cat.id]===noneOpt.id) optNone.selected = true;
+    sel.appendChild(optNone);
+
+    // group(身体障害者手帳/療育手帳/精神障害者保健福祉手帳)ごとにoptgroup化
+    const groups = [];
+    cat.options.forEach(o=>{
+      if(o.id==='none') return;
+      let g = groups.find(g=>g.name===o.group);
+      if(!g){ g = {name:o.group, items:[]}; groups.push(g); }
+      g.items.push(o);
+    });
+    groups.forEach(g=>{
+      const og = document.createElement('optgroup');
+      og.label = g.name;
+      g.items.forEach(o=>{
+        const opt = document.createElement('option');
+        opt.value = o.id; opt.textContent = o.label;
+        if(state.selections[cat.id]===o.id) opt.selected = true;
+        og.appendChild(opt);
+      });
+      sel.appendChild(og);
+    });
+
+    sel.onchange = (e)=>{ state.selections[cat.id] = e.target.value; };
+    body.appendChild(sel);
+    const note = document.createElement('div');
+    note.className='field-note';
+    note.textContent = 'この等級区分と数値の対応は、秀樹氏による独自設計です。法的な等級区分自体には根拠がありますが、数値化そのものは研究による実証値ではありません。';
+    body.appendChild(note);
+  } else {
+    cat.items.forEach(item=>{
+      const card = document.createElement('div');
+      card.className = 'item-card';
+      const set = state.selections[cat.id];
+      if(set.has(item.id)) card.classList.add('selected');
+      card.innerHTML = `
+        <span class="item-label">${item.label}</span>
+        <span class="checkbox"><svg viewBox="0 0 16 16" fill="none"><path d="M2 8L6 12L14 4" stroke="white" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      `;
+      card.onclick = ()=>{
+        if(set.has(item.id)) set.delete(item.id); else set.add(item.id);
+        card.classList.toggle('selected');
+      };
+      body.appendChild(card);
+    });
+    if(cat.isAces){
+      const note = document.createElement('div');
+      note.className='field-note';
+      note.textContent = 'オリジナルのACE研究(Felitti & Anda, 1998)のスコアは、該当項目数を単純に合計する方式(0〜10点)です。本ツールでは項目ごとに重みを変えていますが、この重みづけ自体は秀樹氏による独自設計であり、学術的に実証された配点ではありません。';
+      body.appendChild(note);
+    }
+  }
+
+  document.getElementById('btnBack').textContent = state.current===0 ? 'トップへ' : '戻る';
+  document.getElementById('btnNext').textContent = state.current===CATEGORIES.length-1 ? '結果を見る' : '次へ';
+  showScreen('screen-category');
+}
+
+/* ============================================================
+   SCORING ENGINE
+   仕様:
+   1) 主要項目(disabilityも含む)を得点降順ソートし、
+      1位=100% / 2位=50% / 3位=30% / 4位以降=10% を加算
+   2) ACEs該当項目は減衰対象に含めず、そのまま合計(上限+25)して加算
+   3) 合計が110を超えたら110でキャップ
+   ============================================================ */
+function computeAndShowResult(){
+  const mainScored = [];
+
+  CATEGORIES.forEach(cat=>{
+    if(cat.isAces || cat.isRecovery) return;
+    if(cat.isSelect){
+      const chosen = cat.options.find(o=>o.id===state.selections[cat.id]);
+      if(chosen && chosen.score>0) mainScored.push({label:chosen.label, score:chosen.score});
+    } else {
+      cat.items.forEach(item=>{
+        if(state.selections[cat.id].has(item.id)) mainScored.push({label:item.label, score:item.score});
+      });
+    }
+  });
+
+  mainScored.sort((a,b)=>b.score-a.score);
+  // 1位=100% 2位=50% 3位=30% 4〜6位=10% 7位以降=加算なし
+  // (7位以降も加算し続けると、軽微な項目の大量選択だけで最重度ケースに
+  //  匹敵するスコアが出てしまうため、上位6項目までを減衰加算の対象とする)
+  const weights = [1.0, 0.5, 0.3, 0.1, 0.1, 0.1];
+  let lifeEventScore = 0;
+  const breakdown = [];
+  mainScored.forEach((it, idx)=>{
+    const w = idx < weights.length ? weights[idx] : 0;
+    const contrib = it.score * w;
+    lifeEventScore += contrib;
+    if(contrib>0) breakdown.push({label:it.label, raw:it.score, contrib:Math.round(contrib)});
+    else breakdown.push({label:it.label + '（該当・加算対象外）', raw:it.score, contrib:0});
+  });
+
+  const acesCat = CATEGORIES.find(c=>c.isAces);
+  let acesRaw = 0;
+  acesCat.items.forEach(item=>{
+    if(state.selections[acesCat.id].has(item.id)) acesRaw += item.score;
+  });
+  const acesCapped = Math.min(25, acesRaw);
+  if(acesCapped>0) breakdown.push({label:'子ども時代の体験（ACEs合算・上限25）', raw:acesRaw, contrib:acesCapped});
+
+  let total = Math.round(lifeEventScore + acesCapped);
+  total = Math.min(110, total);
+
+  renderResult(total, breakdown);
+}
+
+/* 7段階の判定テーブル（元のnote記事の7領域に対応） */
+const TIERS = [
+  {min:90, label:'生存限界・超人領域', desc:'生存自体が「世界の奇跡」とされる領域です。'},
+  {min:80, label:'危機・崩壊領域', desc:'社会の基盤が大きく揺らいでいる状態です。'},
+  {min:70, label:'重度負荷・苦闘領域', desc:'専門家の助けが必要な水準です。'},
+  {min:50, label:'摩擦・葛藤領域', desc:'日常が少しずつ「戦い」に変わる、多くの人が経験する水準です。'},
+  {min:40, label:'微細負荷・調整領域', desc:'数日の休暇や軽い環境変化に相当します。'},
+  {min:30, label:'日常ノイズ領域', desc:'電車の遅延や些細な出来事に相当します。'},
+  {min:10, label:'静穏・リラックス領域', desc:'深い呼吸や、ゆったりとした時間に近い状態です。'},
+  {min:0,  label:'測定下限', desc:'ほとんど負荷のない、穏やかな状態です。'}
+];
+function getTier(total){
+  return TIERS.find(t=>total>=t.min) || TIERS[TIERS.length-1];
+}
+
+function renderResult(total, breakdown){
+  document.getElementById('scoreNum').textContent = total;
+
+  let bandHtml = '';
+  let resourceHtml = '';
+  if(total >= 80){
+    bandHtml = '<span class="score-band band-a">生存限界・危機領域</span>';
+    resourceHtml = `
+      <div class="resource-box">
+        <b>ひとりで抱えなくて大丈夫です。</b><br>
+        今の重さは、専門的なサポートを必要とする水準です。よろしければ、下記の相談窓口も選択肢に入れてみてください。<br><br>
+        ・よりそいホットライン：0120-279-338（24時間・無料）<br>
+        ・いのちの電話：0570-783-556
+      </div>`;
+  } else if(total >= 50){
+    bandHtml = '<span class="score-band band-b">摩擦・葛藤領域</span>';
+  } else {
+    bandHtml = '<span class="score-band band-c">回復・静穏に近い領域</span>';
+  }
+  document.getElementById('scoreBand').innerHTML = bandHtml;
+  document.getElementById('resourceBox').innerHTML = resourceHtml;
+
+  /* 7段階スケールの表示 */
+  const tier = getTier(total);
+  const pct = Math.min(100, (total/110)*100);
+  document.getElementById('tierMarker').style.left = pct + '%';
+  document.getElementById('tierDetail').innerHTML =
+    `<b>7段階中：${tier.label}</b>${tier.desc}`;
+
+  const list = document.getElementById('breakdownList');
+  list.innerHTML = '';
+  if(breakdown.length===0){
+    list.innerHTML = '<div class="bd-row"><span>該当項目はありませんでした</span></div>';
+  } else {
+    breakdown.forEach(b=>{
+      const row = document.createElement('div');
+      row.className = 'bd-row';
+      row.innerHTML = `<span>${b.label}</span><span class="pt">+${b.contrib}</span>`;
+      list.appendChild(row);
+    });
+  }
+
+  window._lastTotal = total;
+  window._lastBreakdown = breakdown;
+  showScreen('screen-result');
+}
+
+/* ============================================================
+   SHARE (スコアのみ・内訳は含めない)
+   共有URLには ?from=share&s=<total> を付与し、着地ページ側で
+   専用のバナーを出す（HEART QUAKE社と同様の「あなたも測れます」導線）。
+   内訳(breakdown)は一切URLにもテキストにも含めない。
+   ============================================================ */
+function buildShareUrl(total){
+  const base = location.origin + location.pathname;
+  return `${base}?from=share&s=${total}`;
+}
+function shareToX(){
+  const total = window._lastTotal || 0;
+  const shareUrl = buildShareUrl(total);
+  const text = `私の「心の重り偏差値」は ${total} でした。あなたも測ってみませんか？\n#心の重り偏差値マップ`;
+  window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(shareUrl)}`, '_blank');
+}
+function shareToLine(){
+  const total = window._lastTotal || 0;
+  const shareUrl = buildShareUrl(total);
+  const text = `私の「心の重り偏差値」は ${total} でした。あなたも測ってみませんか？`;
+  window.open(`https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(text)}`, '_blank');
+}
+function shareToFacebook(){
+  const total = window._lastTotal || 0;
+  const shareUrl = buildShareUrl(total);
+  window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`, '_blank');
+}
+function copyResult(){
+  const total = window._lastTotal || 0;
+  const shareUrl = buildShareUrl(total);
+  const text = `私の「心の重り偏差値」は ${total} でした。あなたも測ってみませんか？ ${shareUrl}`;
+  navigator.clipboard.writeText(text).then(()=>alert('コピーしました'));
+}
+
+/* ============================================================
+   着地バナー：?from=share&s=<total> で来た訪問者向け
+   ============================================================ */
+function initShareLanding(){
+  const params = new URLSearchParams(location.search);
+  if(params.get('from') !== 'share') return;
+  const sharedScore = parseInt(params.get('s'), 10);
+  const banner = document.getElementById('shareLandingBanner');
+  const msg = document.getElementById('shareLandingMsg');
+  if(!isNaN(sharedScore)){
+    msg.innerHTML = `友人・知人の「心の重り偏差値」は <b>${sharedScore}</b> でした。あなたはどうですか？ 同じマップで測ってみましょう。`;
+  } else {
+    msg.innerHTML = `友人・知人がこのマップで自分の重さを測りました。あなたも測ってみませんか？`;
+  }
+  banner.classList.add('show');
+}
+document.addEventListener('DOMContentLoaded', initShareLanding);
+function restart(){
+  CATEGORIES.forEach(c=>{ state.selections[c.id] = c.isSelect ? 'none' : new Set(); });
+  state.current = -1;
+  showScreen('screen-intro');
+}
+
+/* ============================================================
+   CONSENT -> Supabase 匿名データ送信
+   送信するのは total_score と category_labels（ラベル文字列の配列）のみ。
+   自由記述・IPアドレス・氏名・メールアドレス等は一切含めない。
+   同意チェックが外れている場合、この関数は呼ばれない
+   （＝何も送信されない）。
+   ============================================================ */
+const SUPABASE_URL = 'https://nfpbzvlhtkedlsziwtpe.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_ITPsHmUTJ_ib_86H9OkNCQ_crYWi2mM';
+
+let _supabaseClient = null;
+function getSupabaseClient(){
+  if(_supabaseClient) return _supabaseClient;
+  if(typeof supabase === 'undefined' || !supabase.createClient){
+    console.warn('[omori-hensachi] Supabase SDKの読み込みに失敗しました。');
+    return null;
+  }
+  _supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+  return _supabaseClient;
+}
+
+let _hasSubmitted = false;
+async function submitAnonymizedResult(){
+  if(_hasSubmitted) return; // 二重送信を防止
+  const client = getSupabaseClient();
+  if(!client) return;
+
+  const total = window._lastTotal;
+  const labels = (window._lastBreakdown || []).map(b => b.label);
+
+  if(typeof total !== 'number') return;
+
+  try{
+    const { error } = await client
+      .from('results')
+      .insert([{ total_score: total, category_labels: labels }]);
+    if(error){
+      console.warn('[omori-hensachi] 匿名データ送信に失敗しました:', error.message);
+    } else {
+      _hasSubmitted = true;
+      console.log('[omori-hensachi] 匿名データを送信しました（個人情報は含まれません）');
+    }
+  } catch(err){
+    console.warn('[omori-hensachi] 匿名データ送信中にエラーが発生しました:', err);
+  }
+}
+
+document.addEventListener('change', function(e){
+  if(e.target && e.target.id==='consentCheck' && e.target.checked){
+    submitAnonymizedResult();
+  }
+});
+</script>
+</body>
+</html>
