@@ -523,6 +523,7 @@
         <div class="tier-track"><div class="tier-marker" id="tierMarker"></div></div>
         <div class="tier-detail" id="tierDetail"></div>
       </div>
+      <div class="field-note" style="margin-top:10px;">現在の段階分けは暫定値です。回答データが十分に蓄積された時点で、実際の分布に基づく統計的な偏差値（平均50・標準偏差10）へ再校正する予定です。</div>
     </div>
 
     <div class="safety-note">
@@ -817,11 +818,18 @@ function renderCategory(){
 
 /* ============================================================
    SCORING ENGINE
-   仕様:
+   仕様（2026-08-13 改訂）:
    1) 主要項目(disabilityも含む)を得点降順ソートし、
-      1位=100% / 2位=50% / 3位=30% / 4位以降=10% を加算
+      1位=100% / 2位=30% / 3位=15% / 4位以降=5% を加算
+      （旧: 100%/50%/30%/10%/10%/10%。中程度の項目を複数選ぶだけで
+      　上限近くに達してしまう問題を受け、2位以降の減衰をより急にした。
+      　ただし、この調整だけでは1項目のraw点自体が高い場合の底上げは
+      　解消しきれない。項目ごとのraw点表そのものの見直しは、
+      　実データが十分に蓄積された段階での次の課題とする）
    2) ACEs該当項目は減衰対象に含めず、そのまま合計(上限+25)して加算
    3) 合計が110を超えたら110でキャップ
+   4) 段階判定は7区分→9区分に細分化し、50〜90の間の解像度を上げた
+      （「50点も69点も同じ帯」という粗さを解消するため）
    ============================================================ */
 function computeAndShowResult(){
   const mainScored = [];
@@ -839,10 +847,12 @@ function computeAndShowResult(){
   });
 
   mainScored.sort((a,b)=>b.score-a.score);
-  // 1位=100% 2位=50% 3位=30% 4〜6位=10% 7位以降=加算なし
+  // 1位=100% 2位=30% 3位=15% 4〜6位=5% 7位以降=加算なし
   // (7位以降も加算し続けると、軽微な項目の大量選択だけで最重度ケースに
-  //  匹敵するスコアが出てしまうため、上位6項目までを減衰加算の対象とする)
-  const weights = [1.0, 0.5, 0.3, 0.1, 0.1, 0.1];
+  //  匹敵するスコアが出てしまうため、上位6項目までを減衰加算の対象とする。
+  //  2位以降の減衰を急にしたのは、中程度の項目が2〜4個重なっただけで
+  //  上限110に張り付いてしまう現象を緩和するため)
+  const weights = [1.0, 0.3, 0.15, 0.05, 0.05, 0.05];
   let lifeEventScore = 0;
   const breakdown = [];
   mainScored.forEach((it, idx)=>{
@@ -867,11 +877,14 @@ function computeAndShowResult(){
   renderResult(total, breakdown);
 }
 
-/* 7段階の判定テーブル（元のnote記事の7領域に対応） */
+/* 9段階の判定テーブル（元のnote記事の7領域を、50〜90帯の解像度を上げて再分割）
+   偏差値の一般的な体感（60超で上位16%、70超で上位2%相当）に近づけるため、
+   50〜69を一つの帯にまとめず60を境に分けている。 */
 const TIERS = [
   {min:90, label:'生存限界・超人領域', desc:'生存自体が「世界の奇跡」とされる領域です。'},
   {min:80, label:'危機・崩壊領域', desc:'社会の基盤が大きく揺らいでいる状態です。'},
   {min:70, label:'重度負荷・苦闘領域', desc:'専門家の助けが必要な水準です。'},
+  {min:60, label:'高負荷・踏ん張り領域', desc:'平均を大きく超え、周囲から見ても「よく持ちこたえている」水準です。'},
   {min:50, label:'摩擦・葛藤領域', desc:'日常が少しずつ「戦い」に変わる、多くの人が経験する水準です。'},
   {min:40, label:'微細負荷・調整領域', desc:'数日の休暇や軽い環境変化に相当します。'},
   {min:30, label:'日常ノイズ領域', desc:'電車の遅延や些細な出来事に相当します。'},
@@ -904,12 +917,12 @@ function renderResult(total, breakdown){
   document.getElementById('scoreBand').innerHTML = bandHtml;
   document.getElementById('resourceBox').innerHTML = resourceHtml;
 
-  /* 7段階スケールの表示 */
+  /* 9段階スケールの表示 */
   const tier = getTier(total);
   const pct = Math.min(100, (total/110)*100);
   document.getElementById('tierMarker').style.left = pct + '%';
   document.getElementById('tierDetail').innerHTML =
-    `<b>7段階中：${tier.label}</b>${tier.desc}`;
+    `<b>9段階中：${tier.label}</b>${tier.desc}`;
 
   const list = document.getElementById('breakdownList');
   list.innerHTML = '';
