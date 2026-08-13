@@ -447,12 +447,6 @@
     margin:-14px 0 20px;
   }
 
-  /* ---------- share buttons: LINE/Facebook ---------- */
-  .share-btn.line-btn{
-    background:var(--gold-soft);
-    color:var(--ink);
-  }
-
   @media (prefers-reduced-motion: reduce){
     .start-btn, .progress-inner{transition:none;}
   }
@@ -551,7 +545,6 @@
     <div class="share-box">
       <p>シェアされるのは総合スコアのみです。内訳は公開されません。</p>
       <div class="share-actions">
-        <button class="share-btn line-btn" onclick="shareToLine()">LINEで送る</button>
         <button class="share-btn" onclick="shareToX()">Xで結果をシェア</button>
         <button class="share-btn outline" onclick="shareToFacebook()">Facebookでシェア</button>
         <button class="share-btn outline" onclick="copyResult()">結果をコピー</button>
@@ -951,12 +944,6 @@ function shareToX(){
   const shareUrl = buildShareUrl(total);
   const text = `私の「心の重り偏差値」は ${total} でした。あなたも測ってみませんか？\n#心の重り偏差値マップ`;
   window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(shareUrl)}`, '_blank');
-}
-function shareToLine(){
-  const total = window._lastTotal || 0;
-  const shareUrl = buildShareUrl(total);
-  const text = `私の「心の重り偏差値」は ${total} でした。あなたも測ってみませんか？`;
-  window.open(`https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(text)}`, '_blank');
 }
 function shareToFacebook(){
   const total = window._lastTotal || 0;
